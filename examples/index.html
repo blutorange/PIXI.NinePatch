@@ -23,40 +23,44 @@
 </head>
 <body unselectable="on" style="-moz-user-select: none; -webkit-user-select: none; user-select: none">
 
-    <script src="pixi.js"></script>
-    <script src="pixi.ninepatch.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.5/pixi.min.js"></script>
+    <script src="../pixi.ninepatch.js"></script>
 
     <script>
 
-    var stage = new PIXI.Stage( 0xffffff );
-    var renderer = PIXI.autoDetectRenderer( 400, 400 );
-    document.body.appendChild(renderer.view);
+    const app = new PIXI.Application({
+        width: 1280,
+        height: 720,
+        backgroundColor: 0xffffff
+    });
+    document.body.appendChild(app.view);
 
-    var ninepatch = new PIXI.NinePatch(100, 30, "img/yellow_button_0*.png", false);
-                    
-        ninepatch.x = 10;
-        ninepatch.y = 10;
-
-    stage.addChild(ninepatch);
-
-    stage.click = stage.tap = function() 
-    {
-        ninepatch.update(
-            30 + Math.ceil(Math.random() * 350),
-            30 + Math.ceil(Math.random() * 350)
-        );
-    };
-
-
-    function animate()
-    {
-        requestAnimationFrame(animate);
-        renderer.render(stage);
-    };
-
-    animate();
-    
+    const loader = new PIXI.loaders.Loader();
+    loader.add("ninepatch", "img/ninepatch.json");
+    loader.load((loader, resources) => {
+        const ninepatch = new PIXI.NinePatch(resources.ninepatch, 150, 120);
+        const text = new PIXI.Text("Click me");
+        ninepatch.position.set(10, 10);
+        app.stage.addChild(ninepatch);
+        app.stage.interactive = true;
+        app.stage.buttonMode = true;
+        ninepatch.body.addChild(text);
+        app.stage.on("click", () => {
+            ninepatch.position.set(
+                0 + Math.ceil(Math.random() * 350),
+                0 + Math.ceil(Math.random() * 350)
+            );
+            ninepatch.update(
+                150 + Math.ceil(Math.random() * 650),
+                120 + Math.ceil(Math.random() * 350)
+            );
+        });
+    });
+    loader.onError.add(function(){
+        alert("failed to load the ninepatch resource");
+        app.destroy();
+        document.body.remove();
+    });
     </script>
-
 </body>
 </html>

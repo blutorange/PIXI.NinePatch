@@ -1,0 +1,201 @@
+{
+  "frames": {
+    "ninepatch_1.png": {
+      "frame": {
+        "x": 1,
+        "y": 1,
+        "w": 24,
+        "h": 36
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 25,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 25,
+        "h": 37
+      }
+    },
+    "ninepatch_2.png": {
+      "frame": {
+        "x": 25,
+        "y": 1,
+        "w": 130,
+        "h": 36
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 37
+      }
+    },
+    "ninepatch_3.png": {
+      "frame": {
+        "x": 155,
+        "y": 1,
+        "w": 26,
+        "h": 36
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 27,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 27,
+        "h": 37
+      }
+    },
+    "ninepatch_4.png": {
+      "frame": {
+        "x": 1,
+        "y": 37,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 25,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 25,
+        "h": 18
+      }
+    },
+    "ninepatch_5.png": {
+      "frame": {
+        "x": 25,
+        "y": 37,
+        "w": 130,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 18
+      }
+    },
+    "ninepatch_6.png": {
+      "frame": {
+        "x": 155,
+        "y": 37,
+        "w": 26,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 27,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 27,
+        "h": 18
+      }
+    },
+    "ninepatch_7.png": {
+      "frame": {
+        "x": 1,
+        "y": 55,
+        "w": 24,
+        "h": 36
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 25,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 25,
+        "h": 37
+      }
+    },
+    "ninepatch_8.png": {
+      "frame": {
+        "x": 25,
+        "y": 55,
+        "w": 130,
+        "h": 36
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 130,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 130,
+        "h": 37
+      }
+    },
+    "ninepatch_9.png": {
+      "frame": {
+        "x": 155,
+        "y": 55,
+        "w": 26,
+        "h": 36
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 27,
+        "h": 37
+      },
+      "sourceSize": {
+        "w": 27,
+        "h": 37
+      }
+    }
+  },
+  "meta": {
+    "app": "ruby",
+    "version": "1.0",
+    "image": "ninepatch.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 182,
+      "h": 92
+    },
+    "scale": "1",
+    "content": {
+      "x": 25,
+      "y": 8,
+      "w": 130,
+      "h": 75
+    }
+  }
+}
