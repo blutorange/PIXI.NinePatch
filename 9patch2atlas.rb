@@ -103,8 +103,8 @@ atlas = {
         "content" => {
             "x" => x1n[0],
             "y" => y1n[0],
-            "w" => x1n[1]-x1n[0]+1,
-            "h" => y1n[1]-y1n[0]+1
+            "r" => image.width-x1n[1]-1,
+            "b" => image.height-y1n[1]-1
         }
     }
 }

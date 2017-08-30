@@ -94,14 +94,31 @@
 	        this._body = this.children[9];
 	        
 	        // setup content container
+	        this._bodyX = this.children[0].width;
+	        this._bodyY = this.children[0].height;
+	        this._bodyR = this.children[8].width;
+	        this._bodyB = this.children[8].height;
 	        if (options.resource instanceof PIXI.loaders.Resource) {
 	        	const content = (((options.resource.data||{}).meta)||{}).content;
-	        	if (content)
+	        	if (content) {
 	        		this._body.position.set(content.x,content.y);
+	        		this._bodyX = content.x;
+	        		this._bodyY = content.y;
+	        		this._bodyR = content.r;
+	        		this._bodyB = content.b;
+	        	}
 	        }
 	        
             this.update();
         }
+        
+        get bodyWidth() {
+        	return this._bodyWidth;
+    	}
+    	
+    	get bodyHeight() {
+        	return this._bodyHeight;
+    	}
     	   	
         get body() {
             return this._body;
@@ -231,7 +248,6 @@
             child.position.set(this.children[1].x, this.children[3].y);
             child.height = this.children[3].height;
             child.width = this.children[1].width;
-            this._body.position.set(child.x, child.y);
 
             // middle right
             child = this.children[5];
@@ -250,6 +266,9 @@
             // bottom right
             child = this.children[8];
             child.position.set(this.targetWidth, this.targetHeight);
+
+            this._bodyWidth = this.targetWidth-this._bodyX-this._bodyR;
+            this._bodyHeight = this.targetHeight-this._bodyY-this._bodyB;
 
             // fire custom callback
             if(this.updateCallback)
