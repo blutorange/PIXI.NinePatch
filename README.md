@@ -3,6 +3,11 @@ PIXI.NinePatch
 
 Rendering 9Patch containers on a PIXI stage.
 
+This is a fork of [SebastianNette/PIXI.NinePatch](https://github.com/SebastianNette/PIXI.NinePatch) and
+updates it for the recent version of PIXI.js and adds support for reading frames from a .json spritesheet. 
+Also includes a ruby script for generating a spritesheet json from a standard nine patch (.9.png) image, such
+as those created by the [AndroidSDK draw9patch tool](https://developer.android.com/studio/write/draw9patch.html).
+
 #### How to use ####
 Simply load the pixi.ninepatch.js file after your pixi.js file.
 ```
