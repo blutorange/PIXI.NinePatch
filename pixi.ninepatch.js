@@ -46,7 +46,7 @@
      * @param {width: number, height: number, image: string, resource: Array<PIXI.Texture>|PIXI.Resource, scaleMode: numer} options
      * @class NinePatch
      */
-    class NinePatch extends PIXI.Container {
+    PIXI.NinePatch = class extends PIXI.Container {
     	constructor(options, _opt1, _opt2) {
 	        super();
 	
@@ -276,12 +276,9 @@
         }
     }
 
-    // constructor
-    PIXI.NinePatch = NinePatch;
-
     // NinePatch scale modes.
     PIXI.NinePatch.scaleModes = {
         DEFAULT: 1,
         NINEPATCH: 2
     };
-})(PIXI);
+})(window.PIXI);
