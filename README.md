@@ -11,7 +11,7 @@ and was modified as follows:
 - Support Android SDK ninepatch [AndroidSDK draw9patch tool](https://developer.android.com/studio/write/draw9patch.html).
   file format via a ruby script. Also allows the content body to have different
   position and dimension than the center patch.
-- Apply proper scale when the requested width and height is too small.
+- Apply proper scaling when the requested width or height are too small.
 - Removed unnecessary options (scaleMode, image file name)
 
 
@@ -54,7 +54,8 @@ Options is an object with the following options:
 - __resource:__ (PIXI.loaders.Resource|{key:string,texture:PIXI.Texture}|Array&lt;PIXI.Texture&gt;) The nine patches to use. Can be a PIXI.loaders.Resource (spritesheet) object; or an object with the texture name as the key and the PIXI.Texture as the value; or an array with the textures. Textures are used in order of their name.
 - __width:__ (number) (optional) The width of your 9Patch container. Defaults to the combined width of the left, middle, and right patches.
 - __height:__ (number) (optional) The height of your 9Patch container. Default to the combined height of the top, middle, and bottom patches.
-- **filter:** (string => boolean) (optional) A filter applied when resources are given as an object or PIXI.loaders.Resource. Filters the textures by their name. Useful when loading from a spritesheet also containing other images.
+- __filter:__ (string => boolean) (optional) A filter applied when resources are given as an object or PIXI.loaders.Resource. Filters the textures by their name. Useful when loading from a spritesheet also containing other images.
+- __smallStrategy__ (number) (optional) How to render the nine patch when the requested width or height is smaller than the corners. One of  PIXI.NinePatch.SmallStrategy.* Defaults to PIXI.NinePatch.SmallStrategy.SCALE_CORNERS. 
 
 For example:
 
@@ -64,6 +65,7 @@ let ninepatch = new PIXI.NinePatch({
     height: 30,
     resource: resources.ninepatch,
     filter: /textbox_\d*/,
+    smallStrategy: PIXI.NinePatch.SmallStrategy.SCALE_CORNERS
 });
 stage.addChild(ninepatch);
 ```
@@ -100,3 +102,17 @@ ninepatch.body.addChild(sprite);
 
 stage.addChild(ninepatch);
 ```
+
+#### Small strategy ####
+
+When the requested width or height is smaller than the corners, not scaling
+the corner patches looks bad. There may not be a perfect solution, but we can
+do at least better. The following strategies are available:
+- __PIXI.NinePatch.SmallStrategy.SCALE_CORNERS:__ Only scales those corner
+  patches that would not fit otherwise. Smoothly transitions at any
+  width/height, but patches may not always fit perfectly. This is the default.
+- __PIXI.NinePatch.SmallStrategy.UPSCALE:__ Render the nine patch at a larger
+  width/height, then scale it down to the target width/height. Does not
+  transition smoothly before/after scaling, but patches always fit.
+- __PIXI.NinePatch.SmallStrategy.IGNORE:__ Do not do anything, corners will
+  overlap. This looks bad.

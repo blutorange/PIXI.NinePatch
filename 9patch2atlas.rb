@@ -38,14 +38,19 @@ def create_entry(image, basename, index, frames, interval_x, interval_y)
 end
 
 if (ARGV.length < 1)
-    puts "Usage: ruby 9patch2atlas.rb ninepatch.9.png [pretty]"
+    puts "Usage: ruby 9patch2atlas.rb ninepatch.9.png [pretty] [padTop] [padRight] [padBottom] [padLeft]"
     puts "Output is the input file with the extension replaced by json."
     puts "If pretty is given, pretty formats the json"
+    puts "The black bars at the edges of a ninepatch may result in unwanted flickering. By default, the Android SDK tool draw9Patch puts a 1 pixel border between the image and the black bars. Specify padTop, padRight, padBottom, padLeft for other border widths."
     exit
 end
 
 file = ARGV.shift
 pretty = ARGV.shift == "pretty"
+padTop = (ARGV.shift || 1).to_i;
+padRight = (ARGV.shift || padTop).to_i;
+padBottom = (ARGV.shift || padRight).to_i;
+padLeft = (ARGV.shift || padBottom).to_i;
 basename = File.basename(file, ".png")
 out = File.join(File.dirname(file), basename + ".json")
 image = ChunkyPNG::Image.from_file(file)
@@ -57,12 +62,12 @@ col0 = get_black(image.column(0), image.height)
 rown = get_black(image.row(image.height-1), image.width)
 coln = get_black(image.column(image.width-1), image.height)
 
-x00 = [0,row0[0]-1,1,0]
+x00 = [padLeft,row0[0]-1,1,0]
 x10 = [row0[0], row0[1],0,0]
-x20 = [row0[1]+1, image.width-1,0,1]
-y00 = [0,col0[0]-1,1,0]
+x20 = [row0[1]+1, image.width-1-padRight,0,1]
+y00 = [padTop,col0[0]-1,1,0]
 y10 = [col0[0], col0[1],0,0]
-y20 = [col0[1]+1, image.height-1,0,1]
+y20 = [col0[1]+1, image.height-1-padBottom,0,1]
 
 x1n = [rown[0], rown[1]]
 y1n = [coln[0], coln[1]]

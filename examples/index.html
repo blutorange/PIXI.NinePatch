@@ -64,24 +64,41 @@
                     height: 120,
                     filter: key => /^ninepatch_\d*\.png$/.test(key)
                 });
+                const ninepatch2 = new PIXI.NinePatch({
+                    resource: resources.ninepatch,
+                    width: 0,
+                    height: 0,
+                    filter: key => /^ninepatch_\d*\.png$/.test(key)
+                });
 
-                ninepatch.position.set(10, 10);
+                ninepatch.position.set(310, 310);
                 ninepatch.interactive = true;
                 ninepatch.buttonMode = true;
 
+                app.stage.addChild(ninepatch2);
                 app.stage.addChild(ninepatch);
                 ninepatch.body.addChild(text);
 
                 ninepatch.on("pointertap", () => {
                     ninepatch.position.set(
-                        0 + Math.ceil(Math.random() * 350),
-                        0 + Math.ceil(Math.random() * 350)
+                        300 + Math.ceil(Math.random() * 350),
+                        300 + Math.ceil(Math.random() * 350)
                     );
                     ninepatch.update(
                         10 + Math.ceil(Math.random() * 650),
                         10 + Math.ceil(Math.random() * 350)
                     );
                 });
+                let time = 0;
+                let time2 = 0;
+                app.ticker.add(delta => {
+                    time += delta/60.0;
+                    time2 += delta/60.0;
+                    if (time2 < 0.25) return;
+                    time2 = 0;
+                    ninepatch2.width = 150*(Math.sin(time/5*5)+1)
+                    ninepatch2.height = 150*(Math.sin(time/11*5-1.7)+1)
+                }, this);
             });
             loader.onError.add(function(){
                 alert("failed to load the ninepatch resource");

@@ -53,6 +53,16 @@
      *    the width of the given textures.
      * - options.height (optional) Rendered height of the nine patch. Defaults
      *    to the height of the given textures.
+     * - options.smallStrategy (optional) How to render the nine patch when
+     *   the requested width or height is smaller than the corners. One of 
+     *   PIXI.NinePatch.SmallStrategy.* Defaults to
+     *   PIXI.NinePatch.SmallStrategy.SCALE_CORNERS. The following strategies
+     *   available:
+     *    - SCALE_CORNERS: Only scale those corner patches that would not fit
+     *      otherwise. Smoothly transitions at any width/height.
+     *    - UPSCALE: Render the nine patch at a larger width/height, and scale
+     *      it down to the target width/height.
+     *    - IGNORE: Do not do anything, corners will overlap.
      * - options.filter (optional) Filter applied when using a spritesheet
      *   resource. Only textures whose names match are used a patches. For
      *    example, if your patches are on a spritesheet with other images and
@@ -130,7 +140,9 @@
 	        	}
 	        }
 	        
-            this.update();
+            // set strategy for small dimensions
+            // this already call update()
+            this.smallStrategy = options.smallStrategy;
         }
         
         get bodyDimension() {
@@ -206,6 +218,31 @@
             return this._targetHeight < this._minHeight ? this._targetHeight / this._minHeight : 1;
         }
 
+        get smallStrategy() {
+            return this._smallStrategy;
+        }
+
+        set smallStrategy(value) {
+            this._smallStrategy = value;
+            this.update();
+        }
+
+        update(targetWidth, targetHeight) {
+            switch (this._smallStrategy) {
+            case PIXI.NinePatch.SmallStrategy.UPSCALE:
+                this.updateUpscale(targetWidth, targetHeight);
+                break;
+            case PIXI.NinePatch.SmallStrategy.SCALE_CORNERS:
+                this.updateScaleCorners(targetWidth, targetHeight);
+                break;
+            case PIXI.NinePatch.SmallStrategy.IGNORE:
+                this.updateKeep(targetWidth, targetHeight);
+                break;
+            default:
+                this.updateScaleCorners(targetWidth, targetHeight);
+            }
+        }
+
         /**
          * Updates the container dimensions and aligns the sprites.
          *
@@ -213,7 +250,199 @@
          * @param width {Number} The containers width.
          * @param height {Number} The containers height.
          */
-        update(targetWidth, targetHeight) {
+        updateKeep(targetWidth, targetHeight) {
+            // update target width and height
+            if (targetWidth === undefined)
+                targetWidth = this._targetWidth;
+            if (targetHeight === undefined)
+                targetHeight = this._targetHeight;
+            this._targetWidth = targetWidth;
+            this._targetHeight = targetHeight;
+
+            // restore original dimensions
+            for (let i = 0; i < 9; ++i) {
+                this.children[i].width = this._originalDimensions[i].w;
+                this.children[i].height = this._originalDimensions[i].h;
+            }
+
+            // If the requested width is smaller than the left and right patches
+            // we render the nine patch at a higher resolution and scale it
+            // down.
+            let scaleX = 1;
+            let scaleY = 1;
+            if (targetWidth < this._minWidth) {
+                scaleX = targetWidth/this._minWidth;
+            }
+            if (targetHeight < this._minHeight) {
+                scaleY = targetHeight/this._minHeight;
+            }
+            
+            let child;
+
+            // top left
+            // nothing to be done
+            
+            // top right
+            child = this.children[2];
+            child.position.set(targetWidth, 0);
+
+            // bottom left
+            child = this.children[6];
+            child.position.set(0, targetHeight);
+
+            // bottom right
+            child = this.children[8];
+            child.position.set(targetWidth, targetHeight);
+
+            // top middle
+            child = this.children[1];
+            child.position.set(this.children[0].width, 0);
+            child.width = targetWidth - child.x - this.children[2].width;
+            
+            // bottom middle
+            child = this.children[7];
+            child.position.set(this.children[1].x, targetHeight);
+            child.width = this.children[1].width;
+
+            // middle left
+            child = this.children[3];
+            child.position.set(0, this.children[0].height);
+            child.height = targetHeight - child.y - this.children[6].height;
+
+            // middle right
+            child = this.children[5];
+            child.position.set(targetWidth, this.children[3].y);
+            child.height = this.children[3].height;
+
+            // middle
+            child = this.children[4];
+            child.position.set(this.children[1].x, this.children[3].y);
+            child.height = this.children[3].height;
+            child.width = this.children[1].width;
+        }
+
+
+        /**
+         * Updates the container dimensions and aligns the sprites.
+         *
+         * @method update
+         * @param width {Number} The containers width.
+         * @param height {Number} The containers height.
+         */
+        updateScaleCorners(targetWidth, targetHeight) {
+            // update target width and height
+            if (targetWidth === undefined)
+                targetWidth = this._targetWidth;
+            if (targetHeight === undefined)
+                targetHeight = this._targetHeight;
+            this._targetWidth = targetWidth;
+            this._targetHeight = targetHeight;
+
+            // restore original dimensions
+            for (let i = 0; i < 9; ++i) {
+                this.children[i].width = this._originalDimensions[i].w;
+                this.children[i].height = this._originalDimensions[i].h;
+            }
+
+            // If the requested width is smaller than the left and right patches
+            // we render the nine patch at a higher resolution and scale it
+            // down.
+            let scaleX = 1;
+            let scaleY = 1;
+            if (targetWidth < this._minWidth) {
+                scaleX = targetWidth/this._minWidth;
+            }
+            if (targetHeight < this._minHeight) {
+                scaleY = targetHeight/this._minHeight;
+            }
+            
+            let child;
+
+            // top left
+            child = this.children[0];
+            child.width *= scaleX;
+            child.height *= scaleY;
+            
+            // top right
+            child = this.children[2];
+            child.position.set(targetWidth, 0);
+            child.width *= scaleX;
+            child.height *= scaleY;
+
+            // bottom left
+            child = this.children[6];
+            child.position.set(0, targetHeight);
+            child.width *= scaleX;
+            child.height *= scaleY;
+
+            // bottom right
+            child = this.children[8];
+            child.position.set(targetWidth, targetHeight);
+            child.width *= scaleX;
+            child.height *= scaleY;
+
+            // top middle
+            child = this.children[1];
+            if (scaleX < 1)
+                child.width = child.height = 0;
+            else {
+                child.position.set(this.children[0].width, 0);
+                child.width = targetWidth - child.x - this.children[2].width;
+                child.height *= scaleY;
+            }
+            
+            // bottom middle
+            child = this.children[7];
+            if (scaleX < 1)
+                child.width = child.height = 0;
+            else {
+                child.position.set(this.children[1].x, targetHeight);
+                child.width = this.children[1].width;
+                child.height *= scaleY;
+            }
+
+
+            // middle left
+            child = this.children[3];
+            if (scaleY < 1)
+                child.width = child.height = 0;
+            else {
+                child.visible = true;
+                child.position.set(0, this.children[0].height);
+                child.width *= scaleX;
+                child.height = targetHeight - child.y - this.children[6].height;
+            }
+
+            // middle right
+            child = this.children[5];
+            if (scaleY < 1)
+                child.width = child.height = 0;
+            else {
+                child.position.set(targetWidth, this.children[3].y);
+                child.width *= scaleX;
+                child.height = this.children[3].height;
+            }
+
+
+            // middle
+            child = this.children[4];
+            if (scaleX < 1 || scaleY < 1)
+                child.width = child.height = 0;
+            else {
+                child.position.set(this.children[1].x, this.children[3].y);
+                child.height = this.children[3].height;
+                child.width = this.children[1].width;
+            }
+        }
+
+        /**
+         * Updates the container dimensions and aligns the sprites.
+         *
+         * @method update
+         * @param width {Number} The containers width.
+         * @param height {Number} The containers height.
+         */
+        updateUpscale(targetWidth, targetHeight) {
             // update target width and height
             if (targetWidth === undefined)
                 targetWidth = this._targetWidth;
@@ -299,4 +528,10 @@
             }
         }
     }
+
+    PIXI.NinePatch.SmallStrategy = {
+        UPSCALE: 0,
+        SCALE_CORNERS: 1,
+        IGNORE: 2
+    };
 })(window.PIXI);
