@@ -15,14 +15,14 @@ and was modified as follows:
 - Removed unnecessary options (scaleMode, image file name)
 
 
-#### How to use ####
+## How to use ##
 Simply load the pixi.ninepatch.js file after your pixi.js file.
 ```
 <script src="pixi.js"></script>
 <script src="pixi.ninepatch.js"></script>
 ```
 
-#### Creating a 9 Patch Container ####
+## Creating a 9 Patch Container ##
 ```javascript
 // Create a loader and load the required resources.
 let loader = PIXI.loaders.Loader();
@@ -77,7 +77,7 @@ Textures are ordered by their name and used as nine patches as follows
   6 7 8
 ```
 
-### Creating the spritesheet resource ###
+## Creating the spritesheet resource ##
 
 I included a ruby script for generating the *.json file required by PIXI
 from a standard ninepatch.9.png image. You can edit these images for example
@@ -89,7 +89,7 @@ Output is the input file with the extension replaced by json.
 If pretty is given, pretty formats the json
 ```
 
-#### Adding children ####
+## Adding children ##
 
 The content's location may be different from the location of the middle patch.
 Add children to the body container:
@@ -103,7 +103,7 @@ ninepatch.body.addChild(sprite);
 stage.addChild(ninepatch);
 ```
 
-#### Small strategy ####
+## Small strategy ##
 
 When the requested width or height is smaller than the corners, not scaling
 the corner patches looks bad. There may not be a perfect solution, but we can
