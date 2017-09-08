@@ -30,27 +30,44 @@
  */
 
 /**
- * Slightly modified to work the with PIXI's loader and other small
- * modifications to make it work with a recent version of PIXIJs
- * http://github.com/blutorange
+ * Modified as follows:
+ * 
+ *  - Support loading from a spritesheet json
+ *  - Support Android SDK .9.png file format via a ruby script,
+ *    allow the content body to have different position and dimension
+ *  - Scale properly when the requested width and height is too small 
+ *  - Support the with PIXI's new resource loader
+ *  - Removed unnecessary options (scaleMode, image file name)
+ *
+ * (2017) http://github.com/blutorange
  */
 
 (function(PIXI, undefined) {
     /**
-     * A NinePatchContainer is a collection of 9 Sprites. 4 corner Sprites, 4 side Sprites and 1 Sprite for the content.
-     * - options.image (optional) Base file name, "*" is replaced with the nine patch index (1-9). If not given, uses the first 9 textures of the textures array.
-     * - options.resource An array of textures for the nine patches. May also be a PIXI spritesheet resource, which is loaded from a *.json file.
-     * - options.width Rendered width of the nine patch.
-     * - options.height Rendered height of the nine patch.
-     * - options.scaleMode Either PIXI.NinePatch.scaleModes.NINEPATCH or PIXI.NinePatch.scaleModes.DEFAULT
-     * @param {width: number, height: number, image: string, resource: Array<PIXI.Texture>|PIXI.Resource, scaleMode: numer} options
+     * A NinePatchContainer is a collection of 9 Sprites. 4 corner sprites, 4
+     * side sprites and 1 sprite for the content.
+     * - options.resource An array of textures for the nine patches. May also be
+     *    a PIXI spritesheet resource, loaded from a *.json file. For a
+     *    spritesheet, the textures are ordered by their name.
+     * - options.width (optional) Rendered width of the nine patch. Defaults to
+     *    the width of the given textures.
+     * - options.height (optional) Rendered height of the nine patch. Defaults
+     *    to the height of the given textures.
+     * - options.filter (optional) Filter applied when using a spritesheet
+     *   resource. Only textures whose names match are used a patches. For
+     *    example, if your patches are on a spritesheet with other images and
+     *    the patches are named "mypatch_0.png", "mypatch_1.png" etc., they can
+     *    be filtered as follows:
+     *      key => /^mypatch_\d*\.png$/.test(key)
+     *
+     * @param {width: number, height: number, resource: Array<PIXI.Texture>|PIXI.Resource, filter: string => boolean} options
      * @class NinePatch
      */
     PIXI.NinePatch = class extends PIXI.Container {
     	constructor(options, _opt1, _opt2) {
 	        super();
 	
-	        if (arguments.length > 1) {
+	        if (arguments.length > 1 || options instanceof PIXI.loaders.Resource) {
 	        	options = {
         			width: _opt1,
         			height: _opt2,
@@ -58,28 +75,35 @@
 	        	};
 	        }
 	        
-	        this.scaleMode = options.scaleMode || PIXI.NinePatch.scaleModes.NINEPATCH;
-	        
-	        this.targetWidth = options.width;
-	        this.targetHeight = options.height;
-	        
-	        this.loaded = 0;
-	
-	        this.updateCallback = null;
-	        this.readyCallback = null;
-	
+            // allow either a textures array or a PIXI.loaders.Resource object
 	        let textures = options.resource;
-	        if (textures instanceof PIXI.loaders.Resource) {
+	        if (textures instanceof PIXI.loaders.Resource)
 	        	textures = textures.textures;	        	
-	        }
 	        
 	        // add images
-	        if (options.image)
+	        if (Array.isArray(textures))
 	        	for(var i = 0; i < 9; i++)
-	        		this.addChild(textures[options.image]);
+	        		this.addChild(textures[i]);
 	        else
-        		this.addChild(...Object.values(textures).map((t) => new PIXI.Sprite(t)));
+        		this.addChild(...Object.keys(textures)
+                    .filter(options.filter || (key => true))
+                    .sort()
+                    .map(key => new PIXI.Sprite(textures[key])));
 
+	        this._targetWidth = options.width !== undefined ? options.width : (this.children[0].width + this.children[1].width + this.children[2].width);
+	        this._targetHeight = options.height !== undefined ? options.height : (this.children[0].height + this.children[3].height + this.children[6].height);
+
+	        // get original patch dimensions
+	        this._originalDimensions = [];
+	        for(var i = 0; i < 9; i++)
+        		this._originalDimensions.push({w: this.children[i].width, h: this.children[i].height});
+
+            // Minimum width and height is given by the patches to the 
+            // left+right and top+bottom
+            // If requested width or height is smaller, we need to scale.
+	        this._minWidth = this._originalDimensions[0].w + this._originalDimensions[2].w;
+	        this._minHeight = this._originalDimensions[0].h + this._originalDimensions[2].h;
+	        
             // add content container
             this.addChild(new PIXI.Container());
 
@@ -90,38 +114,44 @@
 	        this.children[7].anchor.set(0, 1);
 	        this.children[8].anchor.set(1, 1);
 	
-	        // quick access
-	        this._body = this.children[9];
-	        
-	        // setup content container
-	        this._bodyX = this.children[0].width;
-	        this._bodyY = this.children[0].height;
-	        this._bodyR = this.children[8].width;
-	        this._bodyB = this.children[8].height;
+	        // content container position
+	        this._bodyLeft = this.children[0].width;
+	        this._bodyTop = this.children[0].height;
+	        this._bodyRight = this.children[8].width;
+	        this._bodyBottom = this.children[8].height;
 	        if (options.resource instanceof PIXI.loaders.Resource) {
 	        	const content = (((options.resource.data||{}).meta)||{}).content;
 	        	if (content) {
-	        		this._body.position.set(content.x,content.y);
-	        		this._bodyX = content.x;
-	        		this._bodyY = content.y;
-	        		this._bodyR = content.r;
-	        		this._bodyB = content.b;
+	        		this.children[9].position.set(content.x,content.y);
+	        		this._bodyLeft = content.x;
+	        		this._bodyTop = content.y;
+	        		this._bodyRight = content.r;
+	        		this._bodyBottom = content.b;
 	        	}
 	        }
 	        
             this.update();
         }
         
+        get bodyDimension() {
+        	return {
+        		x: this.bodyScaleX * this._bodyLeft,
+        		y: this.bodyScaleX * this._bodyTop,
+        		w: this.bodyWidth,
+        		h: this.bodyHeight
+        	};
+        }
+        
         get bodyWidth() {
-        	return this._bodyWidth;
+            return this._targetWidth - this.bodyScaleX * (this._bodyLeft - this._bodyRight);
     	}
     	
     	get bodyHeight() {
-        	return this._bodyHeight;
+        	return this._targetHeight - this.bodyScaleY * (this._bodyTop - this._bodyBottom);
     	}
     	   	
         get body() {
-            return this._body;
+            return this.children[9];
         }
 
     	get content() {
@@ -135,29 +165,11 @@
          * @type Number
          */
         get width() {
-            if(this.scaleMode === PIXI.NinePatch.scaleModes.DEFAULT) {
-                return this.scale.x * this.getLocalBounds().width;
-            }
-            else {
-                return this.scale.x * this.targetWidth;
-            }
+            return this.scale.x * this._targetWidth;
         }
         
         set width(value) {
-            if(this.scaleMode === PIXI.NinePatch.scaleModes.DEFAULT) {
-                var width = this.getLocalBounds().width;
-
-                if (width !== 0) {
-                    this.scale.x = value / ( width/this.scale.x );
-                }
-                else {
-                    this.scale.x = 1;
-                }               
-                this._width = value;
-            }
-            else {
-                this.update(value, this.targetHeight);
-            }
+            this.update(value, this._targetHeight);
         }
 
         /**
@@ -167,36 +179,11 @@
          * @type Number
          */
         get height() {
-            if(this.scaleMode === PIXI.NinePatch.scaleModes.DEFAULT)
-                return  this.scale.y * this.getLocalBounds().height;
-            else
-                return this.scale.y * this.targetHeight;
+            return this.scale.y * this._targetHeight;
         }
         
         set height(value) {
-            if(this.scaleMode === PIXI.NinePatch.scaleModes.DEFAULT) {
-                var height = this.getLocalBounds().height;
-                if(height !== 0)
-                    this.scale.y = value / ( height/this.scale.y );
-                else
-                    this.scale.y = 1;
-                this._height = value;
-            }
-            else {
-                this.update( this.targetWidth, value );
-            }
-        }
-
-        /**
-         * Sets the update callback.
-         *
-         * @method onUpdate
-         * @param callback {Function}
-         * @return {NinePatch} The NinePatch container.
-         */
-        onUpdate(callback) {
-            this.updateCallback = callback;	            
-            return this;
+            this.update(this._targetWidth, value);
         }
 
         /**
@@ -211,6 +198,14 @@
             return this;
         }
 
+        get bodyScaleX() {
+            return this._targetWidth < this._minWidth ? this._targetWidth / this._minWidth : 1;
+        }
+
+        get bodyScaleY() {
+            return this._targetHeight < this._minHeight ? this._targetHeight / this._minHeight : 1;
+        }
+
         /**
          * Updates the container dimensions and aligns the sprites.
          *
@@ -218,30 +213,52 @@
          * @param width {Number} The containers width.
          * @param height {Number} The containers height.
          */
-        update(width, height) {
-            // update width if supplied
-            if(width !== undefined)
-                this.targetWidth = width;
+        update(targetWidth, targetHeight) {
+            // update target width and height
+            if (targetWidth === undefined)
+                targetWidth = this._targetWidth;
+            if (targetHeight === undefined)
+                targetHeight = this._targetHeight;
+            this._targetWidth = targetWidth;
+            this._targetHeight = targetHeight;
 
-            // update height if supplied
-            if(height !== undefined)
-                this.targetHeight = height;
+            // restore original dimensions
+            for (let i = 0; i < 9; ++i) {
+                this.children[i].width = this._originalDimensions[i].w;
+                this.children[i].height = this._originalDimensions[i].h;
+            }
 
+            // If the requested width is smaller than the left and right patches
+            // we render the nine patch at a higher resolution and scale it
+            // down.
+            let scale = 1;
+            if (targetWidth < this._minWidth || targetHeight < this._minHeight) {
+                const upscaleX = Math.ceil(this._minWidth/targetWidth);
+                const upscaleY = Math.ceil(this._minHeight/targetHeight);
+                const upscale = upscaleX*upscaleY;
+            	targetWidth *= upscale;
+            	targetHeight *= upscale;
+                scale = 1.0/upscale;
+            }
+            
             var child;
 
+            // top left
+            child = this.children[0];
+            
             // top middle
             child = this.children[1];
             child.position.set(this.children[0].width, 0);
-            child.width = this.targetWidth - child.x - this.children[2].width;
-
+            child.width = targetWidth - child.x - this.children[2].width;
+            
             // top right
             child = this.children[2];
-            child.position.set(this.targetWidth, 0);
+            child.position.set(targetWidth, 0);
 
             // middle left
             child = this.children[3];
             child.position.set(0, this.children[0].height);
-            child.height = this.targetHeight - child.y - this.children[6].height;
+            child.height = targetHeight - child.y - this.children[6].height;
 
             // middle
             child = this.children[4];
@@ -251,34 +268,35 @@
 
             // middle right
             child = this.children[5];
-            child.position.set(this.targetWidth, this.children[3].y);
+            child.position.set(targetWidth, this.children[3].y);
             child.height = this.children[3].height;
 
             // bottom left
             child = this.children[6];
-            child.position.set(0, this.targetHeight);
+            child.position.set(0, targetHeight);
 
             // bottom middle
             child = this.children[7];
-            child.position.set(this.children[1].x, this.targetHeight);
+            child.position.set(this.children[1].x, targetHeight);
             child.width = this.children[1].width;
 
             // bottom right
             child = this.children[8];
-            child.position.set(this.targetWidth, this.targetHeight);
+            child.position.set(targetWidth, targetHeight);
 
-            this._bodyWidth = this.targetWidth-this._bodyX-this._bodyR;
-            this._bodyHeight = this.targetHeight-this._bodyY-this._bodyB;
-
-            // fire custom callback
-            if(this.updateCallback)
-                this.updateCallback();
+            // scale down upscaled image
+            if (scale !== 1) {
+                // horizontal
+                for (let i = 0; i < 9; ++i)
+                    this.children[i].width *= scale;
+                this.children[1].x = this.children[4].x = this.children[7].x = this.children[0].width;
+                this.children[2].x = this.children[5].x = this.children[8].x = this._targetWidth;
+                // vertical
+                for (let i = 0; i < 9; ++i)
+                    this.children[i].height *= scale;
+                this.children[3].y = this.children[4].y = this.children[5].y = this.children[0].height;
+                this.children[6].y = this.children[7].y = this.children[8].y = this._targetHeight;
+            }
         }
     }
-
-    // NinePatch scale modes.
-    PIXI.NinePatch.scaleModes = {
-        DEFAULT: 1,
-        NINEPATCH: 2
-    };
 })(window.PIXI);

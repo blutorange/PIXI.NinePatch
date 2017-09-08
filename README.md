@@ -3,10 +3,17 @@ PIXI.NinePatch
 
 Rendering 9Patch containers on a PIXI stage.
 
-This is a fork of [SebastianNette/PIXI.NinePatch](https://github.com/SebastianNette/PIXI.NinePatch) and
-updates it for the recent version of PIXI.js and adds support for reading frames from a .json spritesheet. 
-Also includes a ruby script for generating a spritesheet json from a standard nine patch (.9.png) image, such
-as those created by the [AndroidSDK draw9patch tool](https://developer.android.com/studio/write/draw9patch.html).
+This is a fork of [SebastianNette/PIXI.NinePatch](https://github.com/SebastianNette/PIXI.NinePatch)
+and was modified as follows:
+
+- Support PIXI's new resource loader and reading frames from a spritesheet
+  json.
+- Support Android SDK ninepatch [AndroidSDK draw9patch tool](https://developer.android.com/studio/write/draw9patch.html).
+  file format via a ruby script. Also allows the content body to have different
+  position and dimension than the center patch.
+- Apply proper scale when the requested width and height is too small.
+- Removed unnecessary options (scaleMode, image file name)
+
 
 #### How to use ####
 Simply load the pixi.ninepatch.js file after your pixi.js file.
@@ -34,37 +41,41 @@ loader.load((loader, resources) => {
 });
 ```
 
-__width:__ The width of your 9Patch container.
+The constructor is either
 
-__height:__ The height of your 9Patch container.
+__new PIXI.NinePatch(resource, width, height)__
 
-__resource:__ A PIXI.loaders.Resource (spritesheet) object. Used as the source for the nine patches. Can also be an object with the texture name as the key and the PIXI.Texture as the value.
+or
 
-Pass an object as the first argument to specify more options. Available options, in addition to the above, are:
+__new PIXI.NinePatch(options)__
 
-__image:__ The name of image to be used. Must include an asterisk for the the counting number (1-9).
+Options in an object with the following options:
 
-__scaleMode:__ One of PIXI.NinePatch.scaleModes.NINEPATCH (the default) or PIXI.NinePatch.scaleModes.DEFAULT. See below.
+__resource:__ PIXI.loaders.Resource|{key:string,texture:PIXI.Texture}|Array&lt;PIXI.Texture&gt; The nine patches to use. Can be a PIXI.loaders.Resource (spritesheet) object; or an object with the texture name as the key and the PIXI.Texture as the value; or an array with the textures. Textures are used in order of their name.
+
+__width:__ number (optional) The width of your 9Patch container. Defaults to the combined width of the left, middle, and right patches.
+
+__height:__ number (optional) The height of your 9Patch container. Default to the combined height of the top, middle, and bottom patches.
+
+__filter:__ string => boolean (optional) A filter applied when resources are given as an object or PIXI.loaders.Resource. Filters the textures by their name. Useful when loading from a spritesheet also containing other images.
+
+For example:
 
 ```javascript
 let ninepatch = new PIXI.NinePatch({
     width: 100,
     height: 30,
     resource: resources.ninepatch,
-    image: "img/textbox_*.png",
+    filter: /textbox_\d*/,
 });
-
 stage.addChild(ninepatch);
 ```
 
-The asterik in the file name will be replaced with the numbers 1 to 9, corresponding to these nine patches:
-
+Textures are ordered by their name and used as nine patches as follows
 ```
-[ 
-  1, 2, 3,
-  4, 5, 6,
-  7, 8, 9
-]
+  0 1 2
+  3 4 5
+  6 7 8
 ```
 
 ### Creating the spritesheet resource ###
@@ -79,7 +90,10 @@ Output is the input file with the extension replaced by json.
 If pretty is given, pretty formats the json
 ```
 
-#### Adding content to the container ####
+#### Adding children ####
+
+The content's location may be different from the location of the middle patch.
+Add children to the body container:
 
 ```javascript
 
@@ -88,28 +102,4 @@ let ninepatch = new PIXI.NinePatch(...);
 ninepatch.body.addChild(sprite);
 
 stage.addChild(ninepatch);
-```
-
-
-#### Restoring the Container scale behaviour ####
-
-```javascript
-let ninepatch = new PIXI.NinePatch({
-    width: width,
-    height: height,
-    resource: resource,
-    scaleMode: PIXI.NinePatch.scaleModes.DEFAULT
-});
-
-stage.addChild(ninepatch);
-```
-
-or
-
-```javascript
-
-var ninepatch = new PIXI.NinePatch(...);
-stage.addChild(ninepatch);
-
-ninepatch.scaleMode = PIXI.NinePatch.scaleModes.DEFAULT;
 ```

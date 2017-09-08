@@ -1,66 +1,93 @@
 <!doctype html>
 <html>
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-    <title>PIXI NinePatch</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+        <title>PIXI NinePatch</title>
 
-    <style>
-    @-ms-viewport { width: 100vw ; zoom: 100% ; }                           @viewport { width: 100vw ; zoom: 100% ; }
-    @-ms-viewport { user-zoom: fixed ; }                                    @viewport { user-zoom: fixed ; }
-    * { margin:0; padding:0; }
-    html,body { overflow:hidden; }
-    body { background: #000; text-align:center; }
-    canvas {
-        image-rendering: optimizeSpeed;
-        image-rendering: -moz-crisp-edges;
-        image-rendering: -webkit-optimize-contrast;
-        image-rendering: optimize-contrast;
-        -ms-interpolation-mode: nearest-neighbor;
-        margin:0 auto;
-    }
-    </style>
-</head>
-<body unselectable="on" style="-moz-user-select: none; -webkit-user-select: none; user-select: none">
+        <style>
+            @-ms-viewport {
+                width: 100vw;
+                zoom: 100%;
+            }
+            @viewport {
+                width: 100vw;
+                zoom: 100%;
+            }
+            @-ms-viewport {
+                user-zoom: fixed;
+            }
+            @viewport {
+                user-zoom: fixed;
+            }
+            * {
+                margin:0;
+                padding:0;
+            }
+            html,body {
+                overflow:hidden;
+            }
+            body {
+                background: #000;
+                text-align:center;
+            }
+            canvas {
+                image-rendering: optimizeSpeed;
+                image-rendering: -moz-crisp-edges;
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: optimize-contrast;
+                -ms-interpolation-mode: nearest-neighbor;
+                margin:0 auto;
+            }
+        </style>
+    </head>
+    <body unselectable="on"style="-moz-user-select: none; -webkit-user-select: none; user-select: none">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.5/pixi.min.js"></script>
-    <script src="../pixi.ninepatch.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.5/pixi.min.js"></script>
+        <script src="../pixi.ninepatch.js"></script>
 
-    <script>
+        <script>
+            const loader = new PIXI.loaders.Loader();
+            const app = new PIXI.Application({
+                width: 1280,
+                height: 720,
+                backgroundColor: 0xffffff
+            });
 
-    const app = new PIXI.Application({
-        width: 1280,
-        height: 720,
-        backgroundColor: 0xffffff
-    });
-    document.body.appendChild(app.view);
+            document.body.appendChild(app.view);
+            loader.add("ninepatch", "img/ninepatch.json");
+            loader.load((loader, resources) => {
+                const text = new PIXI.Text("Click me");
+                const ninepatch = new PIXI.NinePatch({
+                    resource: resources.ninepatch,
+                    width: 150,
+                    height: 120,
+                    filter: key => /^ninepatch_\d*\.png$/.test(key)
+                });
 
-    const loader = new PIXI.loaders.Loader();
-    loader.add("ninepatch", "img/ninepatch.json");
-    loader.load((loader, resources) => {
-        const ninepatch = new PIXI.NinePatch(resources.ninepatch, 150, 120);
-        const text = new PIXI.Text("Click me");
-        ninepatch.position.set(10, 10);
-        app.stage.addChild(ninepatch);
-        app.stage.interactive = true;
-        app.stage.buttonMode = true;
-        ninepatch.body.addChild(text);
-        app.stage.on("click", () => {
-            ninepatch.position.set(
-                0 + Math.ceil(Math.random() * 350),
-                0 + Math.ceil(Math.random() * 350)
-            );
-            ninepatch.update(
-                150 + Math.ceil(Math.random() * 650),
-                120 + Math.ceil(Math.random() * 350)
-            );
-        });
-    });
-    loader.onError.add(function(){
-        alert("failed to load the ninepatch resource");
-        app.destroy();
-        document.body.remove();
-    });
-    </script>
-</body>
+                ninepatch.position.set(10, 10);
+                ninepatch.interactive = true;
+                ninepatch.buttonMode = true;
+
+                app.stage.addChild(ninepatch);
+                ninepatch.body.addChild(text);
+
+                ninepatch.on("pointertap", () => {
+                    ninepatch.position.set(
+                        0 + Math.ceil(Math.random() * 350),
+                        0 + Math.ceil(Math.random() * 350)
+                    );
+                    ninepatch.update(
+                        10 + Math.ceil(Math.random() * 650),
+                        10 + Math.ceil(Math.random() * 350)
+                    );
+                });
+            });
+            loader.onError.add(function(){
+                alert("failed to load the ninepatch resource");
+                app.destroy();
+                document.body.remove();
+            });
+        </script>
+    </body>
 </html>
