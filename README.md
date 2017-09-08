@@ -49,15 +49,12 @@ or
 
 __new PIXI.NinePatch(options)__
 
-Options in an object with the following options:
+Options is an object with the following options:
 
-__resource:__ PIXI.loaders.Resource|{key:string,texture:PIXI.Texture}|Array&lt;PIXI.Texture&gt; The nine patches to use. Can be a PIXI.loaders.Resource (spritesheet) object; or an object with the texture name as the key and the PIXI.Texture as the value; or an array with the textures. Textures are used in order of their name.
-
-__width:__ number (optional) The width of your 9Patch container. Defaults to the combined width of the left, middle, and right patches.
-
-__height:__ number (optional) The height of your 9Patch container. Default to the combined height of the top, middle, and bottom patches.
-
-__filter:__ string => boolean (optional) A filter applied when resources are given as an object or PIXI.loaders.Resource. Filters the textures by their name. Useful when loading from a spritesheet also containing other images.
+- __resource:__ (PIXI.loaders.Resource|{key:string,texture:PIXI.Texture}|Array&lt;PIXI.Texture&gt;) The nine patches to use. Can be a PIXI.loaders.Resource (spritesheet) object; or an object with the texture name as the key and the PIXI.Texture as the value; or an array with the textures. Textures are used in order of their name.
+- __width:__ (number) (optional) The width of your 9Patch container. Defaults to the combined width of the left, middle, and right patches.
+- __height:__ (number) (optional) The height of your 9Patch container. Default to the combined height of the top, middle, and bottom patches.
+- **filter:** (string => boolean) (optional) A filter applied when resources are given as an object or PIXI.loaders.Resource. Filters the textures by their name. Useful when loading from a spritesheet also containing other images.
 
 For example:
 
