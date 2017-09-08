@@ -132,7 +132,6 @@
 	        if (options.resource instanceof PIXI.loaders.Resource) {
 	        	const content = (((options.resource.data||{}).meta)||{}).content;
 	        	if (content) {
-	        		this.children[9].position.set(content.x,content.y);
 	        		this._bodyLeft = content.x;
 	        		this._bodyTop = content.y;
 	        		this._bodyRight = content.r;
@@ -155,11 +154,11 @@
         }
         
         get bodyWidth() {
-            return this._targetWidth - this.bodyScaleX * (this._bodyLeft - this._bodyRight);
+            return this._targetWidth - this.bodyScaleX * (this._bodyLeft + this._bodyRight);
     	}
     	
     	get bodyHeight() {
-        	return this._targetHeight - this.bodyScaleY * (this._bodyTop - this._bodyBottom);
+        	return this._targetHeight - this.bodyScaleY * (this._bodyTop + this._bodyBottom);
     	}
     	   	
         get body() {
@@ -241,6 +240,8 @@
             default:
                 this.updateScaleCorners(targetWidth, targetHeight);
             }
+            const bodyDimension = this.bodyDimension;
+    		this.children[9].position.set(bodyDimension.x, bodyDimension.y);
         }
 
         /**
